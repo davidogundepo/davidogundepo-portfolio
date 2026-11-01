@@ -41,23 +41,23 @@ export const metadata: Metadata = {
     siteName: SITE.name,
     type: 'profile',
     locale: 'en_GB',
-    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: `${SITE.name}, ${SITE.role}` }],
+    images: [{ url: '/og-hero.jpg', width: 1200, height: 630, alt: `${SITE.name}, ${SITE.role}` }],
   },
   twitter: {
     card: 'summary_large_image',
     title,
     description: SITE.description,
-    images: ['/og.jpg'],
+    images: ['/og-hero.jpg'],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a0a09',
+  themeColor: '#efede7',
 };
 
 /*
  * Set the theme before first paint so a light-mode visitor never sees a dark
- * flash. Dark is the default; the toggle stores the choice.
+ * flash. Light is the default; the toggle stores the choice.
  */
 const themeScript = `try{var t=localStorage.getItem('do-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}`;
 
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="light"
       suppressHydrationWarning
       className={`${archivo.variable} ${instrument.variable} ${jetbrains.variable}`}
     >
