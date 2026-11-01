@@ -15,11 +15,16 @@ export default function Footer() {
         <nav aria-label="Also by David" className="md:col-span-6">
           <p className="mono mb-3 text-[var(--fg-3)]">Also by David</p>
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
-            {FAMILY.map((f) => (
-              <li key={f.href}>
-                <a href={f.href} target="_blank" rel="noopener" className="ulink text-[0.95rem] text-[var(--fg-2)] hover:text-[var(--fg)]">
-                  {f.label} ↗
-                </a>
+            {FAMILY.map((group) => (
+              <li key={group[0].href} className="flex items-center gap-2">
+                {group.map((f, i) => (
+                  <span key={f.href} className="flex items-center gap-2">
+                    {i > 0 && <span aria-hidden className="text-[var(--fg-3)]">|</span>}
+                    <a href={f.href} target="_blank" rel="noopener" className="ulink text-[0.95rem] text-[var(--fg-2)] hover:text-[var(--fg)]">
+                      {f.label} ↗
+                    </a>
+                  </span>
+                ))}
               </li>
             ))}
           </ul>

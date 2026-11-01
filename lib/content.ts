@@ -220,10 +220,13 @@ export const ABOUT = {
   ],
 };
 
+/** Each inner array is one footer item; links in the same item are joined by a bar. */
 export const FAMILY = [
-  { label: 'Nouvellesoft', href: 'https://nouvellesoft.com.ng' },
-  { label: 'The Yearbook App', href: 'https://yearbookapp.web.app' },
-  { label: 'Dave Studio', href: 'https://dave-studio.web.app' },
-  { label: 'Dave Architectures', href: 'https://dave-architectures.web.app' },
-  { label: 'Dave Websites', href: 'https://dave-websites.web.app' },
+  [
+    { label: 'Nouvellesoft', href: 'https://nouvellesoft.com.ng' },
+    { label: 'The Yearbook App', href: 'https://yearbookapp.web.app' },
+  ],
+  [{ label: 'Dave Studio', href: 'https://dave-studio.web.app' }],
+  [{ label: 'Dave Architectures', href: 'https://dave-architectures.web.app' }],
+  [{ label: 'Dave Websites', href: 'https://dave-websites.web.app' }],
 ];
