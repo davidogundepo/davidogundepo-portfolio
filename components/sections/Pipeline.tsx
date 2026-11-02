@@ -2,42 +2,41 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { gsap, useGSAP, prefersReducedMotion } from '@/lib/motion';
-import { PIPELINE } from '@/lib/content';
+import { PIPELINE_HEAD, SYSTEMS, type SysNode, type SysService, type SystemMap } from '@/lib/content';
 import Kicker from '@/components/ui/Kicker';
 import SplitTitle from '@/components/ui/SplitTitle';
-
-type Node = { id: string; name: string; tech: string; body: string };
 
 // Diagram geometry, in viewBox units (1200 x 620).
 const W = 200;
 const MAIN_Y = 255;
 const MAIN_H = 110;
 const SVC_H = 86;
-const mainX = [20, 260, 500, 740, 980];
-const svcX = [140, 500, 860];
 const TOP_Y = 40;
 const BOT_Y = 494;
+const mainX = [20, 260, 500, 740, 980];
+const svcX = [140, 500, 860];
 const cx = (x: number) => x + W / 2;
-const ALL: Node[] = [...PIPELINE.flow, ...PIPELINE.services];
+const MAIN_PATH = `M${cx(mainX[0])} ${MAIN_Y + MAIN_H / 2} H${cx(mainX[4])}`;
 
-// Branches: service id -> elbow path into its main node.
-const BRANCHES: Record<string, string> = {
-  fin: `M${cx(140)} ${TOP_Y + SVC_H} V190 H${cx(260)} V${MAIN_Y}`,
-  crm: `M${cx(500)} ${TOP_Y + SVC_H} V${MAIN_Y}`,
-  ai: `M${cx(860)} ${TOP_Y + SVC_H} V190 H${cx(980)} V${MAIN_Y}`,
-  wa: `M${cx(140)} ${BOT_Y} V430 H${cx(20)} V${MAIN_Y + MAIN_H}`,
-  mail: `M${cx(500)} ${BOT_Y} V${MAIN_Y + MAIN_H}`,
-  ops: `M${cx(860)} ${BOT_Y} V430 H${cx(740)} V${MAIN_Y + MAIN_H}`,
-};
-const TOP_IDS = ['fin', 'crm', 'ai'];
-const BOT_IDS = ['wa', 'mail', 'ops'];
-const MAIN_PATH = `M${cx(20)} ${MAIN_Y + MAIN_H / 2} H${cx(980)}`;
+/** Elbow wire from a side service into the main node it feeds. */
+function wire(s: SysService) {
+  const from = cx(svcX[s.slot]);
+  const to = cx(mainX[s.to]);
+  if (s.row === 'top') {
+    const y0 = TOP_Y + SVC_H;
+    return from === to ? `M${from} ${y0} V${MAIN_Y}` : `M${from} ${y0} V190 H${to} V${MAIN_Y}`;
+  }
+  const yEnd = MAIN_Y + MAIN_H;
+  return from === to ? `M${from} ${BOT_Y} V${yEnd}` : `M${from} ${BOT_Y} V430 H${to} V${yEnd}`;
+}
 
 function Box({
   node, x, y, h, n, active, onPick, main,
 }: {
-  node: Node; x: number; y: number; h: number; n: string; active: boolean; onPick: (id: string) => void; main?: boolean;
+  node: SysNode; x: number; y: number; h: number; n: string; active: boolean; onPick: (id: string) => void; main?: boolean;
 }) {
+  const tech = node.tech.length > 30 ? node.tech.slice(0, 29) + '…' : node.tech;
+  const ink = active ? 'var(--accent-ink)' : undefined;
   return (
     <g
       role="button"
@@ -48,7 +47,7 @@ function Box({
       onMouseEnter={() => onPick(node.id)}
       onFocus={() => onPick(node.id)}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onPick(node.id)}
-      className="cursor-pointer outline-none"
+      className="pl-box cursor-pointer outline-none"
       data-cursor="Inspect"
     >
       <rect
@@ -57,58 +56,128 @@ function Box({
         stroke={active ? 'var(--accent)' : 'var(--line-strong)'}
         style={{ transition: 'fill .4s, stroke .4s' }}
       />
-      <text x={x + 14} y={y + 24} fontSize="11" letterSpacing="1.2" fill={active ? 'var(--accent-ink)' : 'var(--fg-3)'} style={{ fontFamily: 'var(--font-jetbrains)', transition: 'fill .4s' }}>
+      <text x={x + 14} y={y + 24} fontSize="11" letterSpacing="1.2" fill={ink ?? 'var(--fg-3)'} style={{ fontFamily: 'var(--font-jetbrains)', transition: 'fill .4s' }}>
         {n}
       </text>
       <text
         x={x + 14} y={y + (main ? 62 : 52)}
         fontSize={main ? 24 : 19} fontWeight={800}
-        fill={active ? 'var(--accent-ink)' : 'var(--fg)'}
+        fill={ink ?? 'var(--fg)'}
         style={{ fontFamily: 'var(--font-archivo)', fontStretch: '70%', textTransform: 'uppercase', transition: 'fill .4s' }}
       >
         {node.name}
       </text>
-      <text x={x + 14} y={y + (main ? 88 : 72)} fontSize="11" fill={active ? 'var(--accent-ink)' : 'var(--fg-2)'} style={{ fontFamily: 'var(--font-jetbrains)', transition: 'fill .4s' }}>
-        {node.tech.length > 30 ? node.tech.slice(0, 29) + '…' : node.tech}
+      <text x={x + 14} y={y + (main ? 88 : 72)} fontSize="11" fill={ink ?? 'var(--fg-2)'} style={{ fontFamily: 'var(--font-jetbrains)', transition: 'fill .4s' }}>
+        {tech}
       </text>
     </g>
   );
 }
 
+/** Square dropdown for picking which system map is on the board. */
+function Switcher({ sys, onChange }: { sys: SystemMap; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('pointerdown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative z-20">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        data-cursor="Switch"
+        className="mono flex items-center gap-3 border border-[var(--line-strong)] bg-[var(--bg)] px-3 py-2 text-[var(--fg)] transition-colors hover:border-[var(--accent)]"
+      >
+        <span className="sq" />
+        {sys.label}
+        <span aria-hidden className={`inline-block transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      <ul
+        role="listbox"
+        aria-label="Choose a system"
+        className={`absolute left-0 top-full mt-1 w-max min-w-full border border-[var(--line-strong)] bg-[var(--bg)] shadow-[0_20px_40px_rgba(0,0,0,.18)] transition-[clip-path] duration-300 ${
+          open ? '[clip-path:inset(0_0_0_0)]' : 'pointer-events-none [clip-path:inset(0_0_100%_0)]'
+        }`}
+      >
+        {SYSTEMS.map((s, i) => (
+          <li key={s.id}>
+            <button
+              role="option"
+              aria-selected={s.id === sys.id}
+              onClick={() => {
+                onChange(s.id);
+                setOpen(false);
+              }}
+              className={`mono flex w-full items-center gap-3 border-b border-[var(--line)] px-3 py-3 text-left transition-colors last:border-0 hover:bg-[var(--accent)] hover:text-[var(--accent-ink)] ${
+                s.id === sys.id ? 'text-[var(--accent)]' : 'text-[var(--fg-2)]'
+              }`}
+            >
+              <span className="w-5 text-[var(--fg-3)]">0{i + 1}</span>
+              {s.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function Pipeline() {
   const root = useRef<HTMLElement>(null);
-  const all = ALL;
-  const [active, setActive] = useState('form');
+  const [sysId, setSysId] = useState(SYSTEMS[0].id);
+  const sys = SYSTEMS.find((s) => s.id === sysId)!;
+  const all: SysNode[] = [...sys.flow, ...sys.services];
+  const [active, setActive] = useState(sys.flow[0].id);
   const [touched, setTouched] = useState(false);
+  const [switched, setSwitched] = useState(false);
   const [motion, setMotion] = useState(false);
 
   useEffect(() => setMotion(!prefersReducedMotion()), []);
 
-  // Walk the visitor through the flow until they pick a box themselves.
+  // Walk the visitor through the current map until they pick a box themselves.
   useEffect(() => {
     if (touched) return;
-    const ids = ALL.map((n) => n.id);
+    const ids = [...sys.flow, ...sys.services].map((n) => n.id);
     const t = setInterval(() => setActive((a) => ids[(ids.indexOf(a) + 1) % ids.length]), 3200);
     return () => clearInterval(t);
-  }, [touched]);
+  }, [touched, sys]);
 
   const pick = (id: string) => {
     setTouched(true);
     setActive(id);
   };
 
+  const switchTo = (id: string) => {
+    const next = SYSTEMS.find((s) => s.id === id)!;
+    setSysId(id);
+    setActive(next.flow[0].id);
+    setTouched(false);
+    setSwitched(true);
+  };
+
   useGSAP(
     () => {
       if (prefersReducedMotion()) return;
-      const paths = gsap.utils.toArray<SVGPathElement>('.pl-wire');
-      paths.forEach((p) => {
+      gsap.utils.toArray<SVGPathElement>('.pl-wire').forEach((p) => {
         const len = p.getTotalLength();
         gsap.fromTo(p, { strokeDasharray: len, strokeDashoffset: len }, {
           strokeDashoffset: 0, duration: 1.6, ease: 'expo.inOut',
           scrollTrigger: { trigger: '.pl-diagram', start: 'top 75%', once: true },
         });
       });
-      gsap.from('.pl-diagram g[role=button]', {
+      gsap.from('.pl-diagram .pl-box', {
         opacity: 0, y: 16, duration: 0.9, ease: 'expo.out', stagger: 0.05,
         scrollTrigger: { trigger: '.pl-diagram', start: 'top 75%', once: true },
       });
@@ -116,28 +185,39 @@ export default function Pipeline() {
     { scope: root },
   );
 
-  const current = all.find((n) => n.id === active)!;
+  // Each switch redraws the board: boxes drop into place, mobile cards rise.
+  useGSAP(
+    () => {
+      if (prefersReducedMotion() || !switched) return;
+      gsap.fromTo('.pl-diagram .pl-box', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.035 });
+      gsap.fromTo('.pl-mobile li, .pl-mobile .pl-svc', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.04 });
+    },
+    { scope: root, dependencies: [sysId] },
+  );
+
+  const current = all.find((n) => n.id === active) ?? all[0];
   const idx = all.indexOf(current);
+  const wired = (id: string) => active === id;
 
   return (
     <section id="systems" ref={root} className="section relative border-t border-[var(--line)] bg-[var(--bg-2)]">
       <div className="shell">
         <div className="grid gap-8 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
-            <Kicker>{PIPELINE.kicker}</Kicker>
+            <Kicker>{PIPELINE_HEAD.kicker}</Kicker>
             <SplitTitle lines={['How it all', 'connects']} className="display t-xl mt-6" />
           </div>
-          <p className="lede md:col-span-5">{PIPELINE.intro}</p>
+          <p className="lede md:col-span-5">{sys.intro}</p>
+        </div>
+
+        <div className="mt-14 flex flex-wrap items-center justify-between gap-4">
+          <Switcher sys={sys} onChange={switchTo} />
+          <p className="mono text-[var(--fg-3)]">{SYSTEMS.length} systems · hover or tap any box</p>
         </div>
 
         {/* Desktop diagram */}
-        <div className="pl-diagram mt-16 hidden border border-[var(--line)] bg-[var(--bg)] p-4 lg:block">
-          <div className="mono flex justify-between border-b border-[var(--line)] px-2 pb-3 text-[var(--fg-3)]">
-            <span>yba / production / data flow</span>
-            <span>hover or tap any box</span>
-          </div>
-          <svg viewBox="0 0 1200 620" className="h-auto w-full" role="group" aria-label="The Yearbook App system diagram">
-            {/* blueprint grid */}
+        <div className="pl-diagram mt-4 hidden border border-[var(--line)] bg-[var(--bg)] p-4 lg:block">
+          <svg viewBox="0 0 1200 620" className="h-auto w-full" role="group" aria-label={`${sys.label} diagram`}>
             <defs>
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
                 <path d="M40 0H0V40" fill="none" stroke="var(--line)" strokeWidth="0.6" />
@@ -145,20 +225,20 @@ export default function Pipeline() {
             </defs>
             <rect width="1200" height="620" fill="url(#grid)" />
 
-            <text x="20" y="232" fontSize="11" letterSpacing="1.5" fill="var(--fg-3)" style={{ fontFamily: 'var(--font-jetbrains)' }}>
-              STUDENT JOURNEY →
+            <text x="20" y="232" fontSize="11" letterSpacing="1.5" fill="var(--fg-3)" style={{ fontFamily: 'var(--font-jetbrains)', textTransform: 'uppercase' }}>
+              {sys.flowLabel} →
             </text>
 
             <path className="pl-wire" d={MAIN_PATH} stroke="var(--accent)" strokeWidth="2" fill="none" />
-            {Object.entries(BRANCHES).map(([id, d]) => (
+            {sys.services.map((s) => (
               <path
-                key={id}
+                key={`${sys.id}-${s.id}`}
                 className="pl-wire"
-                d={d}
+                d={wire(s)}
                 fill="none"
-                stroke={active === id ? 'var(--accent)' : 'var(--line-strong)'}
-                strokeWidth={active === id ? 2 : 1}
-                strokeDasharray={active === id ? undefined : '4 4'}
+                stroke={wired(s.id) ? 'var(--accent)' : 'var(--line-strong)'}
+                strokeWidth={wired(s.id) ? 2 : 1}
+                strokeDasharray={wired(s.id) ? undefined : '4 4'}
                 style={{ transition: 'stroke .4s' }}
               />
             ))}
@@ -171,23 +251,18 @@ export default function Pipeline() {
                 </rect>
               ))}
             {motion &&
-              Object.entries(BRANCHES).map(([id, d], i) => (
-                <rect key={id} width="6" height="6" x="-3" y="-3" fill="var(--fg-2)">
-                  <animateMotion dur={`${2.6 + i * 0.35}s`} begin={`${i * 0.5}s`} repeatCount="indefinite" path={d} />
+              sys.services.map((s, i) => (
+                <rect key={`${sys.id}-${s.id}`} width="6" height="6" x="-3" y="-3" fill="var(--fg-2)">
+                  <animateMotion dur={`${2.6 + i * 0.35}s`} begin={`${i * 0.5}s`} repeatCount="indefinite" path={wire(s)} />
                 </rect>
               ))}
 
-            {PIPELINE.flow.map((n, i) => (
-              <Box key={n.id} node={n} x={mainX[i]} y={MAIN_Y} h={MAIN_H} n={`0${i + 1}`} active={active === n.id} onPick={pick} main />
+            {sys.flow.map((n, i) => (
+              <Box key={`${sys.id}-${n.id}`} node={n} x={mainX[i]} y={MAIN_Y} h={MAIN_H} n={`0${i + 1}`} active={active === n.id} onPick={pick} main />
             ))}
-            {TOP_IDS.map((id, i) => {
-              const n = PIPELINE.services.find((s) => s.id === id)!;
-              return <Box key={id} node={n} x={svcX[i]} y={TOP_Y} h={SVC_H} n="SERVICE" active={active === id} onPick={pick} />;
-            })}
-            {BOT_IDS.map((id, i) => {
-              const n = PIPELINE.services.find((s) => s.id === id)!;
-              return <Box key={id} node={n} x={svcX[i]} y={BOT_Y} h={SVC_H} n="SERVICE" active={active === id} onPick={pick} />;
-            })}
+            {sys.services.map((s) => (
+              <Box key={`${sys.id}-${s.id}`} node={s} x={svcX[s.slot]} y={s.row === 'top' ? TOP_Y : BOT_Y} h={SVC_H} n="SERVICE" active={active === s.id} onPick={pick} />
+            ))}
           </svg>
 
           <div className="grid grid-cols-12 gap-6 border-t border-[var(--line)] px-2 pt-5" aria-live="polite">
@@ -203,29 +278,31 @@ export default function Pipeline() {
         </div>
 
         {/* Phones and tablets: the same system as a vertical run sheet. */}
-        <ol className="mt-14 border-l border-[var(--accent)] lg:hidden">
-          {PIPELINE.flow.map((n, i) => (
-            <li key={n.id} className="relative pb-9 pl-7">
-              <span className="absolute -left-[5px] top-1.5 block h-[9px] w-[9px] bg-[var(--accent)]" />
-              <p className="mono text-[var(--fg-3)]">0{i + 1} · {n.tech}</p>
-              <p className="display mt-1 text-[2rem]">{n.name}</p>
-              <p className="mt-2 text-[0.98rem] leading-relaxed text-[var(--fg-2)]">{n.body}</p>
-            </li>
-          ))}
-        </ol>
-        <div className="grid gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 lg:hidden">
-          {PIPELINE.services.map((n) => (
-            <div key={n.id} className="bg-[var(--bg)] p-5">
-              <p className="mono text-[var(--fg-3)]">{n.tech}</p>
-              <p className="display mt-1 text-[1.6rem]">{n.name}</p>
-              <p className="mt-2 text-[0.94rem] leading-relaxed text-[var(--fg-2)]">{n.body}</p>
-            </div>
-          ))}
+        <div className="pl-mobile lg:hidden">
+          <ol className="mt-10 border-l border-[var(--accent)]">
+            {sys.flow.map((n, i) => (
+              <li key={`${sys.id}-${n.id}`} className="relative pb-9 pl-7">
+                <span className="absolute -left-[5px] top-1.5 block h-[9px] w-[9px] bg-[var(--accent)]" />
+                <p className="mono text-[var(--fg-3)]">0{i + 1} · {n.tech}</p>
+                <p className="display mt-1 text-[2rem]">{n.name}</p>
+                <p className="mt-2 text-[0.98rem] leading-relaxed text-[var(--fg-2)]">{n.body}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="grid gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
+            {sys.services.map((n) => (
+              <div key={`${sys.id}-${n.id}`} className="pl-svc bg-[var(--bg)] p-5">
+                <p className="mono text-[var(--fg-3)]">{n.tech}</p>
+                <p className="display mt-1 text-[1.6rem]">{n.name}</p>
+                <p className="mt-2 text-[0.94rem] leading-relaxed text-[var(--fg-2)]">{n.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-16 grid gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 lg:grid-cols-4">
-          {PIPELINE.wins.map(([k, v]) => (
-            <div key={k} className="bg-[var(--bg-2)] p-6">
+          {sys.wins.map(([k, v]) => (
+            <div key={`${sys.id}-${k}`} className="bg-[var(--bg-2)] p-6">
               <p className="display text-[clamp(2rem,3vw,2.8rem)]">{k}</p>
               <p className="mt-3 text-[0.94rem] leading-snug text-[var(--fg-2)]">{v}</p>
             </div>

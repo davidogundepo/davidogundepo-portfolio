@@ -63,9 +63,9 @@ export const YBA = {
   origin:
     'It started at Landmark University in 2018, when I built the first version as a graduating student myself. Today it runs as three products on one platform, with a two-week path from first form submission to an official download link.',
   products: [
-    { name: 'YBA Campus', for: 'Universities, polytechnics and colleges of education', img: '/img/fg-university.webp' },
-    { name: 'YBA Academy', for: 'Secondary schools, SS3 and A-Level leavers', img: '/img/fg-academy.webp' },
-    { name: 'YBA NYSC', for: 'Orientation camp platoons and CDS groups', img: '/img/yba-web.webp' },
+    { name: 'YBA Campus', for: 'Universities, polytechnics and colleges of education', img: '/img/yba-campus.webp' },
+    { name: 'YBA Academy', for: 'Secondary schools, SS3 and A-Level leavers', img: '/img/yba-academy.webp' },
+    { name: 'YBA NYSC', for: 'Orientation camp platoons and CDS groups', img: '/img/yba-nysc.webp' },
   ],
   proof: [
     ['1,000+', 'students onboarded at Adeleke University, with a full digital convocation and yearbook experience'],
@@ -87,34 +87,186 @@ export const YBA = {
   liveUrl: 'https://yearbookapp.web.app/yba/campus',
 };
 
-/** The pipeline, as the system actually runs (source: the YBA ecosystem map). */
-export const PIPELINE = {
+export type SysNode = { id: string; name: string; tech: string; body: string };
+/** A side service sits in the top or bottom row (slot 0 to 2) and wires into main node `to`. */
+export type SysService = SysNode & { row: 'top' | 'bottom'; slot: 0 | 1 | 2; to: number };
+export type SystemMap = {
+  id: string;
+  label: string;
+  intro: string;
+  flowLabel: string;
+  flow: SysNode[];
+  services: SysService[];
+  wins: [string, string][];
+};
+
+export const PIPELINE_HEAD = {
   kicker: '02 · Systems',
   title: 'How it all connects',
-  intro:
-    'The Yearbook App is not one app. It is a pipeline I designed and run end to end, so that adding a school is configuration, not code. Follow a single student through it.',
-  flow: [
-    { id: 'form', name: 'Web form', tech: 'React · Vite · Hosting', body: 'The student opens their school’s form. Faculties and departments load from Firestore and cache in the browser. Photos upload straight to Cloud Storage, where an extension renders 512px and 1080px copies.' },
-    { id: 'pay', name: 'Checkout', tech: 'Paystack · Apps Script', body: 'Payment is initialised server-side, so secret keys never touch the browser. Each reference is verified and recorded so it can never be reused.' },
-    { id: 'sheet', name: 'Apps Script', tech: 'Google Sheets · validation', body: 'Validation, a honeypot, throttling and duplicate checks run before the row lands in a master sheet and an auto-created tab per school, which student leaders can watch live.' },
-    { id: 'store', name: 'Firestore', tech: 'Tenant per school + cohort', body: 'A sync writes each student, leader and department into that school’s room for the year, then sends the welcome email and adds them to the right mailing list.' },
-    { id: 'app', name: 'Flutter apps', tech: 'Campus · Academy · NYSC', body: 'The apps read Firestore live, cache content on the phone, and refetch when a content version is bumped. Live on the App Store and Google Play.' },
-  ],
-  services: [
-    { id: 'fin', name: 'Finance functions', tech: 'Cloud Functions · Zoho Books', body: 'A nightly job pulls every payment and refund and posts journal entries per product, with partner shares, VAT tripwires and Sentry alerts. Bank webhooks record transfers as they land.' },
-    { id: 'mail', name: 'Email functions', tech: 'Brevo · React Email', body: 'Lifecycle emails, birthdays, weekly re-engagement and holiday messages, all templated in React Email.' },
-    { id: 'wa', name: 'WhatsApp functions', tech: 'Meta Cloud API', body: 'Profile-edit codes, form follow-ups every 15 minutes, birthdays and campaigns, over WhatsApp instead of SMS.' },
-    { id: 'ai', name: 'Cloud Run services', tech: 'Gemini on Vertex AI', body: 'An in-app AI chat, auto-written student bios, OTP verification, a school index and notification senders.' },
-    { id: 'ops', name: 'Ops console', tech: 'n8n on a GCP VM · Telegram', body: 'Daily payment digests, finance alerts and natural-language data corrections, run from a phone.' },
-    { id: 'crm', name: 'CRM', tech: 'Sheets · Apps Script', body: 'Per-school price, payment rules and partner share. The books and the payout dashboards follow it automatically.' },
-  ],
-  wins: [
-    ['56,000 → 16', 'daily database reads for the birthday job, after I replaced a full scan with tagged queries'],
-    ['0', 'secret keys in the browser: payment, contacts and payout tokens all live server-side'],
-    ['Nightly', 'books that close themselves: Paystack to Zoho Books, reconciled without a spreadsheet'],
-    ['1 form', 'serves universities, secondary schools and NYSC groups across every state'],
-  ],
 };
+
+/**
+ * Every map here is drawn from the real thing: the YBA ecosystem map and
+ * customer journey playbook, and the code of each Dave site.
+ */
+export const SYSTEMS: SystemMap[] = [
+  {
+    id: 'yba-data',
+    label: 'yba / production / data flow',
+    flowLabel: 'Student journey',
+    intro:
+      'The Yearbook App is not one app. It is a pipeline I designed and run end to end, so that adding a school is configuration, not code. Follow a single student through it.',
+    flow: [
+      { id: 'form', name: 'Web form', tech: 'React · Vite · Hosting', body: 'The student opens their school’s form. Faculties and departments load from Firestore and cache in the browser. Photos upload straight to Cloud Storage, where an extension renders 512px and 1080px copies.' },
+      { id: 'pay', name: 'Checkout', tech: 'Paystack · Apps Script', body: 'Payment is initialised server-side, so secret keys never touch the browser. Each reference is verified and recorded so it can never be reused.' },
+      { id: 'sheet', name: 'Apps Script', tech: 'Google Sheets · validation', body: 'Validation, a honeypot, throttling and duplicate checks run before the row lands in a master sheet and an auto-created tab per school, which student leaders can watch live.' },
+      { id: 'store', name: 'Firestore', tech: 'Tenant per school + cohort', body: 'A sync writes each student, leader and department into that school’s room for the year, then sends the welcome email and adds them to the right mailing list.' },
+      { id: 'app', name: 'Flutter apps', tech: 'Campus · Academy · NYSC', body: 'The apps read Firestore live, cache content on the phone, and refetch when a content version is bumped. Live on the App Store and Google Play.' },
+    ],
+    services: [
+      { row: 'top', slot: 0, to: 1, id: 'fin', name: 'Finance functions', tech: 'Cloud Functions · Zoho Books', body: 'A nightly job pulls every payment and refund and posts journal entries per product, with partner shares, VAT tripwires and Sentry alerts. Bank webhooks record transfers as they land.' },
+      { row: 'top', slot: 1, to: 2, id: 'crm', name: 'CRM', tech: 'Sheets · Apps Script', body: 'Per-school price, payment rules and partner share. The books and the payout dashboards follow it automatically.' },
+      { row: 'top', slot: 2, to: 4, id: 'ai', name: 'Cloud Run services', tech: 'Gemini on Vertex AI', body: 'An in-app AI chat, auto-written student bios, OTP verification, a school index and notification senders.' },
+      { row: 'bottom', slot: 0, to: 0, id: 'wa', name: 'WhatsApp functions', tech: 'Meta Cloud API', body: 'Profile-edit codes, form follow-ups every 15 minutes, birthdays and campaigns, over WhatsApp instead of SMS.' },
+      { row: 'bottom', slot: 1, to: 2, id: 'mail', name: 'Email functions', tech: 'Brevo · React Email', body: 'Lifecycle emails, birthdays, weekly re-engagement and holiday messages, all templated in React Email.' },
+      { row: 'bottom', slot: 2, to: 3, id: 'ops', name: 'Ops console', tech: 'n8n on a GCP VM · Telegram', body: 'Daily payment digests, finance alerts and natural-language data corrections, run from a phone.' },
+    ],
+    wins: [
+      ['56,000 → 16', 'daily database reads for the birthday job, after I replaced a full scan with tagged queries'],
+      ['0', 'secret keys in the browser: payment, contacts and payout tokens all live server-side'],
+      ['Nightly', 'books that close themselves: Paystack to Zoho Books, reconciled without a spreadsheet'],
+      ['1 form', 'serves universities, secondary schools and NYSC groups across every state'],
+    ],
+  },
+  {
+    id: 'yba-growth',
+    label: 'yba / growth / school to phone',
+    flowLabel: 'Customer journey',
+    intro:
+      'Software is half of it. This is how a school actually gets The Yearbook App: from a student scrolling past a trailer to a whole graduating class with the app on their phones. It is the playbook I wrote and run, stage by stage.',
+    flow: [
+      { id: 'attention', name: 'Attention', tech: 'TikTok · Instagram · campus ads', body: 'Video trailers and tutorials online, and eleven ad placements on campus: the library, cafeteria, hostel entrances, lecture-hall walkways, even laptop stickers. Every one points to WhatsApp.' },
+      { id: 'contact', name: 'Inside contact', tech: 'In person · WhatsApp', body: 'Every school needs one person inside it: a union president, a class rep or a lead connector. First contact is in person: a three-minute pitch, the app demoed on my phone and a trifold brochure in hand.' },
+      { id: 'drop', name: 'Augment drop', tech: '6 to 16 hours later', body: 'With permission, the follow-up lands on WhatsApp: the trailer, the roadmap, the pricing graphic, screenshots, the yearbook questions and the form link. Then one question: what do you think?' },
+      { id: 'cohort', name: 'Cohort form', tech: 'Leaders share to class groups', body: 'Leaders post the form into their class and department WhatsApp groups. Five days to fill it, gentle reminders until the majority is in, and payment inside the same form.' },
+      { id: 'phones', name: 'App on phones', tech: '2 weeks · download link', body: 'The form data becomes that school’s yearbook. Leaders receive the download link and a copy-paste message for their groups, and the class installs it.' },
+    ],
+    services: [
+      { row: 'top', slot: 0, to: 1, id: 'proposals', name: 'Proposals', tech: 'One per institution', body: 'A tailored proposal for each university, school, state government and the NYSC, plus sales decks for Nigeria, the UK and international schools.' },
+      { row: 'top', slot: 1, to: 2, id: 'outreach', name: 'Outreach CRM', tech: 'Sheets · n8n · Telegram', body: 'Every school is a row: contact, expected students, status, next action and its date. I update it from Telegram in plain English and an n8n worker writes the row.' },
+      { row: 'top', slot: 2, to: 3, id: 'poll', name: 'Adoption poll', tech: '/poll/{school} · Apps Script', body: 'Before committing, a class can vote yes or no on its own public poll page, with proof screenshots and a share button. A clear yes is the green light to send the form.' },
+      { row: 'bottom', slot: 0, to: 0, id: 'content', name: 'Content engine', tech: 'Trailers · tutorials · posters', body: 'Video ads for Campus, Academy and NYSC, YouTube tutorials, thumbnails, roll-up banners and brochures, so every touchpoint looks like the same product.' },
+      { row: 'bottom', slot: 1, to: 3, id: 'pulse', name: 'Pulse analytics', tech: 'Anonymous funnel events', body: 'The form reports each step, from viewed to picked, photo, pay, paid and submitted, with no names attached, so I can see exactly where a class stalls.' },
+      { row: 'bottom', slot: 2, to: 4, id: 'after', name: 'After-sales', tech: 'Gratitude · feedback · UGC', body: 'A thank-you a few days later, a feedback check, then photos and video testimonials from happy classes, shared within seven days as proof for the next school.' },
+    ],
+    wins: [
+      ['8 stages', 'from “Hello, Mr Prospect” to the app on the customer’s phone, written down as a playbook'],
+      ['11', 'on-campus ad placements, each designed for the wall it hangs on'],
+      ['20%', 'of proceeds returned to student leadership, so the leaders who champion it are paid for it'],
+      ['31', 'institutions and bodies with a proposal in hand'],
+    ],
+  },
+  {
+    id: 'dave-studio',
+    label: 'dave studio / order flow',
+    flowLabel: 'Customer journey',
+    intro:
+      'An AI portrait studio that sells through WhatsApp instead of a checkout page, because that is where Nigerian graduates already talk. No account, no deposit, and nothing to pay until they like what they see.',
+    flow: [
+      { id: 'catalogue', name: 'Catalogue', tech: '529 looks · Campus + NYSC', body: 'Graduates browse 339 campus looks and 190 NYSC looks in a fast gallery with a full-screen lightbox.' },
+      { id: 'select', name: 'Selection', tech: 'Live pricing drawer', body: 'Each tap adds a look to a selection drawer that prices itself: 5 looks for ₦10,000, 10 for ₦17,000, and every count in between priced on the line between them.' },
+      { id: 'order', name: 'WhatsApp order', tech: 'Pre-written message', body: 'Checkout opens WhatsApp with the order already written: every chosen look by its code, the count and the total. The customer only presses send.' },
+      { id: 'make', name: 'Generation', tech: 'Their photos · AI', body: 'The customer sends the photos they already have, and every chosen look is generated around their own face.' },
+      { id: 'deliver', name: 'Approve & pay', tech: 'Watermarked previews · 48h', body: 'Watermarked previews come back first. They pay only after approving, then receive the clean files, all within 48 hours.' },
+    ],
+    services: [
+      { row: 'top', slot: 0, to: 0, id: 'media', name: 'Image pipeline', tech: 'Python · WebP', body: 'A build script renames, de-duplicates and ranks every source image for the featured grid, then writes web-weight WebP files.' },
+      { row: 'top', slot: 1, to: 1, id: 'price', name: 'Pricing engine', tech: 'One TypeScript function', body: 'One function prices any count from the two anchor bundles, so the drawer, the pricing section and the WhatsApp total can never disagree.' },
+      { row: 'top', slot: 2, to: 2, id: 'host', name: 'Static hosting', tech: 'Next.js export · Firebase', body: 'The whole store is static files on Firebase Hosting. No server to run, so there is nothing to go down at midnight.' },
+      { row: 'bottom', slot: 1, to: 2, id: 'tag', name: 'Source tagging', tech: 'Every link says where from', body: 'Every WhatsApp and email link carries a message naming the site it came from, so an order is never confused with a cold message.' },
+    ],
+    wins: [
+      ['₦0', 'deposit: customers pay after they approve their previews'],
+      ['48 h', 'from their photos to finished portraits'],
+      ['1 tap', 'from a full selection to a written WhatsApp order'],
+      ['529', 'looks across the Campus and NYSC catalogues'],
+    ],
+  },
+  {
+    id: 'dave-websites',
+    label: 'dave websites / template store',
+    flowLabel: 'Buyer journey',
+    intro:
+      'A digital product store that runs itself. A buyer can find a template, try it, pay and download it at 3am without anyone being awake.',
+    flow: [
+      { id: 'find', name: 'Discover', tech: 'Search · Google Ads', body: 'Buyers land on a catalogue of 52 industry-specific templates, from oil and gas to football clubs, each with its own page.' },
+      { id: 'try', name: 'Live preview', tech: 'Embedded in the page', body: 'Every template opens as a working site inside the page, so a buyer clicks through the real thing before paying.' },
+      { id: 'buy', name: 'Checkout', tech: 'Stripe Payment Links · $39', body: 'A Stripe payment link per template at $39, or the full bundle, with each purchase reported back to Google Ads as a conversion.' },
+      { id: 'get', name: 'Download', tech: 'Thank-you page · zip', body: 'Stripe returns the buyer to a thank-you page for that template, which checks access and starts the download by itself.' },
+      { id: 'launch', name: 'Launch', tech: 'How-to-edit guide', body: 'A step-by-step guide covers editing in VS Code, previewing locally and deploying anywhere, with priority email support for buyers.' },
+    ],
+    services: [
+      { row: 'top', slot: 0, to: 0, id: 'revamp', name: 'Revamp outreach', tech: '100 found · 81 rebuilt', body: 'I found 100 UK businesses with outdated websites, rebuilt 81 of them as modern replacements, and pitched each one its own new site.' },
+      { row: 'top', slot: 1, to: 2, id: 'ads', name: 'Ad tracking', tech: 'Google Ads · gtag', body: 'Single and bundle purchases are tracked as separate conversions, so ad spend can be judged by sales, not clicks.' },
+      { row: 'top', slot: 2, to: 4, id: 'custom', name: 'Custom builds', tech: '15+ live client sites', body: 'Buyers who need more get a custom build: corporate sites, platforms and dashboards, all live today.' },
+    ],
+    wins: [
+      ['52', 'industry templates, each with a live preview'],
+      ['$39', 'per template, or the full bundle'],
+      ['0', 'people needed between a sale and a download'],
+      ['81', 'websites rebuilt for the outreach campaign'],
+    ],
+  },
+  {
+    id: 'revamp',
+    label: 'dave websites / revamp outreach',
+    flowLabel: 'Outreach run',
+    intro:
+      'Cold outreach that does not feel cold. I build a business its new website before I ever say hello, so the first message is not a pitch. It is their own site, already live.',
+    flow: [
+      { id: 'prospect', name: 'Prospect', tech: 'Sheet · 11 markets', body: 'A research sheet of businesses whose websites have fallen behind, tabbed by market from England and Wales to the USA, Canada, Australia and across Africa, with contacts and the current site for each.' },
+      { id: 'build', name: 'Build first', tech: 'The new site, before hello', body: 'I build the replacement before making contact, so the first message shows them their own new website at a live preview link.' },
+      { id: 'clean', name: 'Sheet update', tech: 'Preview link · status · checks', body: 'Each row gets its preview link, the right contact and a status. Bad data is caught first: fax numbers, council switchboards and look-alike businesses.' },
+      { id: 'channel', name: 'Channel', tech: 'WhatsApp · email · phone', body: 'Mobiles get WhatsApp, landlines get email, and a business with no public email gets a phone call first to ask who should receive it. Owners of several sites get one message covering all of them.' },
+      { id: 'send', name: 'Send', tech: 'Preview link up front', body: 'The message leads with the preview link on its own line. Price never appears in the first message, and the sign-off carries WhatsApp and LinkedIn.' },
+    ],
+    services: [
+      { row: 'top', slot: 0, to: 0, id: 'diligence', name: 'Due diligence', tech: 'Public inspection reports', body: 'Before each call I read the business’s latest public inspection report. The new sites show those ratings honestly instead of hiding them.' },
+      { row: 'top', slot: 1, to: 2, id: 'previews', name: 'Preview hosting', tech: 'Vercel · Netlify', body: 'Every replacement lives at its own preview address, ready to hand over the day they say yes.' },
+      { row: 'top', slot: 2, to: 4, id: 'order', name: 'Send order', tech: 'Most urgent first', body: 'Sends are ordered by urgency: businesses already being pitched by a competitor first, then owners of several sites, where one message covers many.' },
+    ],
+    wins: [
+      ['100', 'businesses found in the first UK run'],
+      ['81', 'sites built before the first hello'],
+      ['0', 'prices in the first message'],
+      ['11', 'markets in the prospect sheet'],
+    ],
+  },
+  {
+    id: 'dave-architectures',
+    label: 'dave architectures / photos to film',
+    flowLabel: 'Client journey',
+    intro:
+      'Estate agents already have the photos. This service turns them into films without a crew or a second visit, and the agent is only needed at the very first step.',
+    flow: [
+      { id: 'photos', name: 'Photos', tech: 'A listing link is enough', body: 'Agents send what they already have: listing photos, phone shots, floor plans. A link to the listing is enough to start.' },
+      { id: 'quote', name: 'Quote', tech: 'Within a day', body: 'A fixed price against one of three packages, back within a day.' },
+      { id: 'sequence', name: 'Sequence', tech: 'A walkthrough that makes sense', body: 'The rooms are ordered into a walkthrough that makes spatial sense, so the film feels like walking the property.' },
+      { id: 'motion', name: 'Motion', tech: 'Camera moves · depth · grade', body: 'Each still gets a camera move, parallax and depth, then colour, music and captions.' },
+      { id: 'film', name: 'Delivery', tech: 'About 5 working days', body: 'One 16:9 master up to 90 seconds, three 9:16 social cuts, captions as .srt, thumbnails, and one round of revisions.' },
+    ],
+    services: [
+      { row: 'top', slot: 1, to: 2, id: 'stage', name: 'Virtual staging', tech: 'Empty rooms, furnished', body: 'Vacant rooms are staged digitally with furniture, rugs and lighting, then the staged version is animated, so a cold listing films like a home.' },
+      { row: 'top', slot: 2, to: 4, id: 'pipe', name: 'Media pipeline', tech: 'Python · Cloud Storage', body: 'Scripts detect letterboxing, cut web-weight versions and upload them to Cloud Storage with a manifest the site reads.' },
+    ],
+    wins: [
+      ['0', 'crews or site visits'],
+      ['1 + 3', 'films per property: a 16:9 master and three 9:16 cuts'],
+      ['≈ 5 days', 'from photos to delivered films'],
+      ['1', 'round of revisions included'],
+    ],
+  },
+];
 
 export type Project = {
   n: string;

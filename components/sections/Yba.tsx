@@ -68,7 +68,7 @@ export default function Yba() {
                     <p className="display text-[clamp(1.6rem,2.4vw,2.2rem)]">{p.name}</p>
                     <p className="text-[0.92rem] text-[var(--fg-2)]">{p.for}</p>
                   </div>
-                  <div className="frame hidden h-14 w-28 sm:block">
+                  <div className="frame hidden aspect-[16/10] w-36 sm:block">
                     <img src={p.img} alt="" className="transition-transform duration-700 group-hover:scale-110" />
                   </div>
                 </li>
