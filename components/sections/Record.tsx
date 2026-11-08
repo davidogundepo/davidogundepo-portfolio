@@ -95,7 +95,7 @@ export default function Record() {
       <div className="shell section !pt-10 lg:!pt-24">
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-4">
-            <Kicker>Eleven years, one line</Kicker>
+            <Kicker>Thirteen years, one line</Kicker>
             <p className="display t-md mt-5">From a student touchscreen kiosk to proposals on a state government desk.</p>
           </div>
           <ol className="tl-list md:col-span-8">

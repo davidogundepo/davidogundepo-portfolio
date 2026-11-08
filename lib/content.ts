@@ -331,7 +331,7 @@ export const RECORD = [
 ];
 
 export const TIMELINE = [
-  ['2015', 'Landmark University', 'BSc Civil Engineering. Built a touchscreen yearbook with fingerprint sign-in (Java, PHP, MySQL).'],
+  ['2013', 'Landmark University', 'Started a BSc in Civil Engineering, and went on to build a touchscreen yearbook with fingerprint sign-in (Java, PHP, MySQL).'],
   ['2018', 'Innovation Award', 'For student tech projects and a public address on technology. Led the Creativity & Innovation team.'],
   ['2019', 'NYSC, Rivers State', 'Shipped a Flutter and Firebase yearbook for my CDS group on the App Store and Google Play.'],
   ['2020', 'Coventry, UK', 'MSc Structural Engineering, Distinction. Registered ICDAT Dans Le Monde Ltd in Nigeria.'],
