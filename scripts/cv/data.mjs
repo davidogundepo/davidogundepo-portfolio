@@ -13,7 +13,7 @@ export const CV = {
     'github.com/davidogundepo',
   ],
   profile:
-    'Software engineer and founder with 8+ years of building and shipping mobile apps, web platforms and cloud automation for real users. I built and run The Yearbook App, a three-product Flutter and Firebase platform with 1,000+ students onboarded at Adeleke University and adoption proposals before 30+ institutions, two state governments and the NYSC. Tech Innovation Lead at REDtech Africa. MSc Structural Engineering (Distinction), Coventry University. Winner at Business Awards UK 2024, BTA Developer of the Year finalist, and a Startup World Cup Top 10 regional finalist. Looking for an engineering or product role where I can own a product end to end.',
+    'Software engineer and founder with 8+ years of building and shipping mobile apps, web platforms and cloud automation for real users. I built and run The Yearbook App, a three-product Flutter and Firebase platform with 1,000+ students onboarded at Adeleke University and adoption proposals before 30+ institutions, two state governments and the NYSC. Formerly Tech Innovation Lead at REDtech Africa. MSc Structural Engineering (Distinction), Coventry University. Winner at Business Awards UK 2024, BTA Developer of the Year finalist, and a Startup World Cup Top 10 regional finalist. Looking for an engineering or product role where I can own a product end to end.',
   skills: [
     ['Mobile', 'Flutter, Dart, iOS and Android releases, push notifications (FCM, APNs), offline caching'],
     ['Web', 'React, Next.js, TypeScript, Vite, Tailwind CSS, GSAP, PHP, MySQL, HTML/CSS'],
@@ -44,12 +44,13 @@ export const CV = {
       role: 'Tech Innovation Lead & First Tech Employee',
       org: 'REDtech Africa',
       where: 'Lagos, Nigeria',
-      when: 'Jan 2025 – Present',
+      when: 'Jan 2025 – Dec 2025',
       bullets: [
         'Joined as founding tech partner in a three-person leadership team as the company grew to 12 staff.',
         'Built the internal operations platform: attendance, leave, tasks, staff utilisation, finance dashboard, waybills, client directory, document repository and a social media hub.',
         'Built REDSTREAM, an African-focused streaming platform (series management, profiles, admin) and its value-added-services dashboard for telco partners.',
         'Rebuilt the company website several times as the business evolved, introduced ClickUp, and redesigned the organogram, logo and email standards.',
+        'Still support the team on ad-hoc projects since the role ended.',
       ],
     },
     {
@@ -70,7 +71,7 @@ export const CV = {
       when: '2021 – 2023',
       bullets: [
         'Software Developer (contract), youHQ, 2023.',
-        'Descriptive Data Analyst, Stickee Ltd, 2021.',
+        'Descriptive Data Analyst (short placement), Stickee Ltd, 2021.',
         'Freelance web and mobile development on Upwork, PeoplePerHour, Arc.dev and Contra.',
       ],
     },
@@ -78,7 +79,8 @@ export const CV = {
   earlier: [
     'NYSC CDS Yearbook App, Rivers State (2019–20): Flutter and Firebase, published on the App Store and Google Play.',
     'Civil and Structural Engineering yearbook app, Coventry University (2020–22): published on Google Play.',
-    'Touchscreen yearbook, Landmark University (2015–19): Java, Android, PHP and MySQL with fingerprint sign-in; and a cafeteria food-buying kiosk system proposed to the university in 2019.',
+    'Cafeteria ordering kiosk, Landmark University: a 15.6-inch touchscreen app (Java, Android) where students paid for food and drinks from a school e-wallet with a fingerprint scan (U.are.U scanner). Self-taught; won the 2018 Innovation Award and was proposed to the university in 2019.',
+    'Touchscreen yearbook, Landmark University (2015–19): Java, Android, PHP and MySQL with fingerprint sign-in.',
   ],
   awards: [
     ['2025', 'Startup World Cup, Lagos regional finals: Top 10 of 500+ applicants; accepted to the Grand Finale, San Francisco, 17 October 2025'],
@@ -87,7 +89,7 @@ export const CV = {
     ['2024', 'The Signature Awards, Birmingham: three nominations (Startup of the Year, Innovative Business, Excellence in Technology)'],
     ['2024', 'Insider Media: two nominations (Digital Technology, Manufacturing Startup)'],
     ['2023', 'Exhibitor, NEC Birmingham; £3,000 grant; Coventry University Launch founder programme'],
-    ['2018', 'Innovation Award, Landmark University'],
+    ['2018', 'Innovation Award, Landmark University, for a touchscreen cafeteria kiosk with fingerprint payment'],
   ],
   education: [
     {

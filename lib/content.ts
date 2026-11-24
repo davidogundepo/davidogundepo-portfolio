@@ -293,8 +293,8 @@ export const PROJECTS: Project[] = [
     body: 'Graduation and NYSC portraits generated from photos you already have: a 529-look catalogue, live pricing and WhatsApp checkout.' },
   { n: '07', title: 'Dave Architectures', year: '2026', tag: 'Property films · motion', img: '/img/dave-architectures.webp', href: 'https://dave-architectures.web.app',
     body: 'Turns the listing photos estate agents already have into cinematic property films, cut for listings and for social.' },
-  { n: '08', title: 'Cafeteria Food-Buying System', year: '2019', tag: 'Landmark University · PHP · MySQL', img: '/img/cafeteria-3d.webp',
-    body: 'As a student I designed touchscreen kiosks set into the cafeteria counters to replace paper meal tickets, with an admin back office, and took the proposal to the university.' },
+  { n: '08', title: 'Cafeteria Food-Buying System', year: '2018–19', tag: 'Landmark University · Java · Android · Fingerprint', img: '/img/cafeteria-3d.webp',
+    body: 'As a student, self-taught from hundreds of YouTube tutorials, I built a 15.6-inch touchscreen kiosk app for the cafeteria: students topped up a school e-wallet and paid for food and drinks with a fingerprint scan. It won the 2018 Innovation Award, and I took the proposal to the university.' },
 ];
 
 export const WEB_WALL = [
@@ -332,10 +332,10 @@ export const RECORD = [
 
 export const TIMELINE = [
   ['2013', 'Landmark University', 'Started a BSc in Civil Engineering, and went on to build a touchscreen yearbook with fingerprint sign-in (Java, PHP, MySQL).'],
-  ['2018', 'Innovation Award', 'For student tech projects and a public address on technology. Led the Creativity & Innovation team.'],
+  ['2018', 'Innovation Award', 'For a touchscreen cafeteria kiosk where students paid by fingerprint from a school e-wallet. Led the Creativity & Innovation team.'],
   ['2019', 'NYSC, Rivers State', 'Shipped a Flutter and Firebase yearbook for my CDS group on the App Store and Google Play.'],
   ['2020', 'Coventry, UK', 'MSc Structural Engineering, Distinction. Registered ICDAT Dans Le Monde Ltd in Nigeria.'],
-  ['2021', 'Stickee Ltd · GFA App', 'Data analyst, and the club app for Coventry Phoenix FC.'],
+  ['2021', 'Stickee Ltd · GFA App', 'A short data analyst placement, and the club app for Coventry Phoenix FC.'],
   ['2022', 'Nouvellesoft', 'Founded the company behind The Yearbook App and the GFA App.'],
   ['2023', 'youHQ · NEC', 'Software developer contract, £3,000 grant, and an exhibition stand at the NEC.'],
   ['2024', 'Awards season', 'A win and six UK nominations. In September I moved home to build for Nigerian institutions.'],
